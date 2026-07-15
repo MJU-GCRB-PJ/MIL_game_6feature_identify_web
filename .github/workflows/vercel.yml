@@ -8,11 +8,11 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: secrets
     env:
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-      data_env: ${{ secrets.data_env }}
-      auth_env: ${{ secrets.auth_env }}
+      DATA_ENV: ${{ secrets.DATA_ENV }}
+      AUTH_ENV: ${{ secrets.AUTH_ENV }}
       AUTH_SESSION_SECRET: ${{ secrets.AUTH_SESSION_SECRET }}
     steps:
       - name: Checkout
@@ -33,16 +33,14 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Pull Vercel project settings
-        run: npx vercel@56.2.0 pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
-
-      - name: Build with Vercel
-        run: npx vercel@56.2.0 build --prod --token="${{ secrets.VERCEL_TOKEN }}"
-
       - name: Deploy
         run: >
-          npx vercel@56.2.0 deploy --prebuilt --prod
-          --token="${{ secrets.VERCEL_TOKEN }}"
-          --env data_env="$data_env"
-          --env auth_env="$auth_env"
+          npx vercel@56.2.0 deploy --yes --prod
+          --token="${{ secrets.WEB_TOKEN }}"
+          --project mil-game-6feature-identify-web
+          --build-env DATA_ENV="$DATA_ENV"
+          --build-env AUTH_ENV="$AUTH_ENV"
+          --build-env AUTH_SESSION_SECRET="$AUTH_SESSION_SECRET"
+          --env DATA_ENV="$DATA_ENV"
+          --env AUTH_ENV="$AUTH_ENV"
           --env AUTH_SESSION_SECRET="$AUTH_SESSION_SECRET"
