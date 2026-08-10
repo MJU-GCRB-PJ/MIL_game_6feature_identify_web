@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { getDataUrl } from "@/lib/data-env";
+import { createDownloadUrl } from "@/lib/download-url";
 import { findDataFile } from "@/lib/files";
 
 export async function GET(
@@ -15,11 +15,15 @@ export async function GET(
   const { file } = await params;
   const fileId = decodeURIComponent(file);
   const dataFile = findDataFile(fileId);
-  const url = getDataUrl(fileId);
 
-  if (!dataFile || !url) {
-    return NextResponse.json({ error: "Download URL is not configured." }, { status: 404 });
+  if (!dataFile) {
+    return NextResponse.json({ error: "Requested file was not found." }, { status: 404 });
   }
 
-  return NextResponse.redirect(url, { status: 302 });
+  try {
+    const url = await createDownloadUrl(dataFile);
+    return NextResponse.redirect(url, { status: 302 });
+  } catch {
+    return NextResponse.json({ error: "Download service is unavailable." }, { status: 503 });
+  }
 }

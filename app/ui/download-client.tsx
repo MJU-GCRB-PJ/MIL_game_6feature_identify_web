@@ -165,8 +165,8 @@ export function DownloadClient({ groups }: Props) {
       <p className="warning">
         <ShieldCheck size={18} />
         <span>
-          Raw URLs are resolved on the server after authorization. For Vercel production, make sure the
-          MinIO URL in <code>data_env</code> is reachable from the downloader network.
+          Each download is authorized first, then served directly by MinIO through a signed URL that expires
+          after one hour.
         </span>
       </p>
     </>

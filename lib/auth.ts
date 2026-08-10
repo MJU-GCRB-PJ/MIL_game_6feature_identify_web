@@ -14,12 +14,8 @@ type SessionPayload = {
   exp: number;
 };
 
-export function getConfiguredUsers(): AuthUser[] {
-  const raw = process.env.auth_env ?? process.env.AUTH_ENV ?? "";
-  if (!raw.trim()) {
-    return [];
-  }
-
+export function getConfiguredUsers(env: NodeJS.ProcessEnv = process.env): AuthUser[] {
+  const raw = env.auth_env ?? env.AUTH_ENV ?? "";
   const users = new Map<string, Partial<AuthUser>>();
 
   for (const line of raw.split(/\r?\n/)) {
@@ -46,6 +42,28 @@ export function getConfiguredUsers(): AuthUser[] {
         ...users.get(user),
         user,
         expiresAt: parseExpireDate(expireMatch[2]),
+      });
+    }
+  }
+
+  for (const [key, value] of Object.entries(env)) {
+    const match = key.match(/^(user\d+)_(auth|expire_date)$/i);
+    if (!match || value === undefined) {
+      continue;
+    }
+
+    const [, user, field] = match;
+    if (field.toLowerCase() === "auth") {
+      users.set(user, {
+        ...users.get(user),
+        user,
+        code: parseAuthCode(value),
+      });
+    } else {
+      users.set(user, {
+        ...users.get(user),
+        user,
+        expiresAt: parseExpireDate(value),
       });
     }
   }
